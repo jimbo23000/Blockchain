@@ -1,12 +1,9 @@
 import javax.swing.*;
-import java.awt.event.*;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.util.*;
 
 public class GUI {
-    static JFrame loginFrame;
+    static JFrame accountLoginFrame;
     static JFrame createAccountFrame;
 
     static JTextField usernameTextField;
@@ -23,17 +20,18 @@ public class GUI {
     static JButton loginButton;
     static JButton createAccountButton;
 
-    private BufferedWriter bufferedWriter;
-
     private boolean loginVisible;
     private boolean createAccountVisible;
+
+    private final File accountDataFile;
 
     public GUI() {
         loginVisible = false;
         createAccountVisible = false;
+        accountDataFile = new File("AccountData.txt");
         accountLogin();
-        loginVisible = toggleFrame(loginFrame, loginVisible);
         createAccount();
+        loginVisible = toggleFrame(accountLoginFrame, loginVisible);
     }
 
     private void setFrame(JFrame frame, int width, int height) {
@@ -78,11 +76,8 @@ public class GUI {
     private void generateLoginButton(int initialX, int initialY, int width, int height) {
         loginButton = new JButton("Login");
         loginButton.setBounds(initialX, initialY, width, height);
-        loginButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent event) {
+        loginButton.addActionListener(event -> {
 
-            }
         });
     }
 
@@ -103,10 +98,16 @@ public class GUI {
     private void generateCreateAccountButton(int initialX, int initialY, int width, int height) {
         createAccountButton = new JButton("Create Account");
         createAccountButton.setBounds(initialX, initialY, width, height);
-        createAccountButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent event) {
-                loginVisible = toggleFrame(loginFrame, loginVisible);
+        createAccountButton.addActionListener(event -> {
+            if (createAccountVisible && (canAddAccount())) {
+                addAccount();
+                loginVisible = toggleFrame(accountLoginFrame, loginVisible);
+                createAccountVisible = toggleFrame(createAccountFrame, createAccountVisible);
+                clearTextFields();
+            } else if (createAccountVisible && (!canAddAccount())) {
+                //Don't clear text fields.
+            } else {
+                loginVisible = toggleFrame(accountLoginFrame, loginVisible);
                 createAccountVisible = toggleFrame(createAccountFrame, createAccountVisible);
             }
         });
@@ -144,26 +145,125 @@ public class GUI {
         frame.add(discordTextField);
     }
 
+    private boolean checkForRepeating(int index, String inputText) {
+        Scanner accountDataScanner;
+        ArrayList<String> accountDataList;
+        try {
+            accountDataScanner = new Scanner(accountDataFile);
+            accountDataList = new ArrayList<>();
+            while (accountDataScanner.hasNextLine()) {
+                Scanner lineScanner = new Scanner(accountDataScanner.nextLine());
+                String accountDataText = "";
+                for (int i = -1; i < index; i++) {
+                    accountDataText = lineScanner.next();
+                }
+                accountDataList.add(accountDataText);
+            }
+        } catch (FileNotFoundException exception) {
+            System.out.println("FileNotFoundException");
+            return false;
+        }
+        for (String text : accountDataList) {
+            if (text.equals(inputText)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean canAddUsername() {
+        String usernameText = usernameTextField.getText();
+        if ((usernameText == null) || (usernameText.length() < 5) || (!checkForRepeating(0, usernameText))) {
+            usernameTextLabel.setText("Enter Another Username Here:");
+            usernameTextField.setText("");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean canAddPassword() {
+        String passwordText = passwordTextField.getText();
+        if ((passwordText == null) || (passwordText.length() < 8) || (!checkForRepeating(1, passwordText))) {
+            passwordTextLabel.setText("Enter Another Password Here:");
+            passwordTextField.setText("");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean canAddEmail() {
+        String emailText = emailTextField.getText();
+        if ((emailText == null) || (!checkForRepeating(2, emailText))) {
+            emailTextLabel.setText("Enter Another Email Here:");
+            emailTextField.setText("");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean canAddDiscord() {
+        String discordText = discordTextField.getText();
+        if ((discordText == null) || (!checkForRepeating(3, discordText))) {
+            discordTextLabel.setText("Enter Another Discord Here:");
+            discordTextField.setText("");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean canAddAccount() {
+        boolean canAdd = true;
+        if (!canAddUsername()) {
+            canAdd = false;
+        }
+        if (!canAddPassword()) {
+            canAdd = false;
+        }
+        if (!canAddEmail()) {
+            canAdd = false;
+        }
+        if (!canAddDiscord()) {
+            canAdd = false;
+        }
+        return canAdd;
+    }
+
+    private void addAccount() {
+        try {
+            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(accountDataFile, true));
+            bufferedWriter.write(usernameTextField.getText() + ' ');
+            bufferedWriter.write(passwordTextField.getText() + ' ');
+            bufferedWriter.write(emailTextField.getText() + ' ');
+            bufferedWriter.write(discordTextField.getText() + ' ');
+            bufferedWriter.newLine();
+            bufferedWriter.close();
+        } catch (IOException exception) {
+            System.out.println("IOException");
+        }
+    }
+
+    private void clearTextFields() {
+        usernameTextField.setText("");
+        passwordTextField.setText("");
+        emailTextField.setText("");
+        discordTextField.setText("");
+    }
+
     private void accountLogin() {
         int frameConstant = 300;
-        loginFrame = new JFrame("Account Login");
-        setFrame(loginFrame, frameConstant, frameConstant);
+        accountLoginFrame = new JFrame("Account Login");
+        setFrame(accountLoginFrame, frameConstant, frameConstant);
         generateUsernameAndPassword(50, 0, 200, 25, 16);
         generateLoginButton(100, 110, 100, 25);
         generateCreateAccountLabel(50, 150, 200, 25);
         generateCreateAccountButton(75, 175, 150, 25);
-        addUsernameAndPassword(loginFrame);
-        addLoginButton(loginFrame);
-        addCreateAccountLabel(loginFrame);
-        addCreateAccountButton(loginFrame);
+        addUsernameAndPassword(accountLoginFrame);
+        addLoginButton(accountLoginFrame);
+        addCreateAccountLabel(accountLoginFrame);
+        addCreateAccountButton(accountLoginFrame);
     }
 
     private void createAccount() {
-        try {
-            bufferedWriter = new BufferedWriter(new FileWriter(new File("AccountData.dat")));
-        } catch (IOException exception) {
-            System.out.println("IOException");
-        }
         int frameConstant = 300;
         createAccountFrame = new JFrame("Create Account");
         setFrame(createAccountFrame, frameConstant, frameConstant);
