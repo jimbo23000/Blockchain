@@ -19,15 +19,21 @@ public class GUI {
 
     static JButton loginButton;
     static JButton createAccountButton;
+    static JButton goBackButton;
 
     private boolean loginVisible;
     private boolean createAccountVisible;
+
+    private final int heightConstant;
+    private final int columnConstant;
 
     private final File accountDataFile;
 
     public GUI() {
         loginVisible = false;
         createAccountVisible = false;
+        heightConstant = 25;
+        columnConstant = 16;
         accountDataFile = new File("AccountData.txt");
         accountLogin();
         createAccount();
@@ -145,6 +151,20 @@ public class GUI {
         frame.add(discordTextField);
     }
 
+    private void generateGoBackButton(int initialX, int initialY, int width, int height) {
+        goBackButton = new JButton("Go Back");
+        goBackButton.setBounds(initialX, initialY, width, height);
+        goBackButton.addActionListener(event -> {
+            loginVisible = toggleFrame(accountLoginFrame, loginVisible);
+            createAccountVisible = toggleFrame(createAccountFrame, createAccountVisible);
+            clearTextFields();
+        });
+    }
+
+    private void addGoBackButton(JFrame frame) {
+        frame.add(goBackButton);
+    }
+
     private boolean checkForRepeating(int index, String inputText) {
         Scanner accountDataScanner;
         ArrayList<String> accountDataList;
@@ -250,13 +270,12 @@ public class GUI {
     }
 
     private void accountLogin() {
-        int frameConstant = 300;
         accountLoginFrame = new JFrame("Account Login");
-        setFrame(accountLoginFrame, frameConstant, frameConstant);
-        generateUsernameAndPassword(50, 0, 200, 25, 16);
-        generateLoginButton(100, 110, 100, 25);
-        generateCreateAccountLabel(50, 150, 200, 25);
-        generateCreateAccountButton(75, 175, 150, 25);
+        setFrame(accountLoginFrame, 300, 300);
+        generateUsernameAndPassword(50, 0, 200, heightConstant, columnConstant);
+        generateLoginButton(100, 110, 100, heightConstant);
+        generateCreateAccountLabel(50, 150, 200, heightConstant);
+        generateCreateAccountButton(75, 175, 150, heightConstant);
         addUsernameAndPassword(accountLoginFrame);
         addLoginButton(accountLoginFrame);
         addCreateAccountLabel(accountLoginFrame);
@@ -264,14 +283,15 @@ public class GUI {
     }
 
     private void createAccount() {
-        int frameConstant = 300;
         createAccountFrame = new JFrame("Create Account");
-        setFrame(createAccountFrame, frameConstant, frameConstant);
-        generateUsernameAndPassword(50, 0, 200, 25, 16);
-        generateEmailAndDiscord(50, 100, 200, 25, 16);
-        generateCreateAccountButton(75, 210, 150, 25);
+        setFrame(createAccountFrame, 300, 350);
+        generateUsernameAndPassword(50, 0, 200, heightConstant, columnConstant);
+        generateEmailAndDiscord(50, 100, 200, heightConstant, columnConstant);
+        generateCreateAccountButton(75, 210, 150, heightConstant);
+        generateGoBackButton(75, 245, 150, heightConstant);
         addUsernameAndPassword(createAccountFrame);
         addEmailAndDiscord(createAccountFrame);
         addCreateAccountButton(createAccountFrame);
+        addGoBackButton(createAccountFrame);
     }
 }
