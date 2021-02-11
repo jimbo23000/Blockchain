@@ -165,9 +165,18 @@ public class GUI {
         frame.add(goBackButton);
     }
 
-    private boolean checkForRepeating(int index, String inputText) {
+    private void clearTextFields() {
+        usernameTextField.setText("");
+        passwordTextField.setText("");
+        emailTextField.setText("");
+        discordTextField.setText("");
+    }
+
+    //Returns whether the input is repeating and the index of the repetition.
+    private String checkForRepeating(int index, String inputText) {
         Scanner accountDataScanner;
         ArrayList<String> accountDataList;
+        int counter = -1;
         try {
             accountDataScanner = new Scanner(accountDataFile);
             accountDataList = new ArrayList<>();
@@ -181,19 +190,21 @@ public class GUI {
             }
         } catch (FileNotFoundException exception) {
             System.out.println("FileNotFoundException");
-            return false;
+            return true + " " + counter;
         }
         for (String text : accountDataList) {
+            counter++;
             if (text.equals(inputText)) {
-                return false;
+                return true + " " + counter;
             }
         }
-        return true;
+        return false + " " + counter;
     }
 
     private boolean canAddUsername() {
         String usernameText = usernameTextField.getText();
-        if ((usernameText == null) || (usernameText.length() < 5) || (!checkForRepeating(0, usernameText))) {
+        String[] isRepeating = checkForRepeating(0, usernameText).split("\\s+");
+        if ((usernameText == null) || (usernameText.length() < 5) || (Boolean.parseBoolean(isRepeating[0]))) {
             usernameTextLabel.setText("Enter Another Username Here:");
             usernameTextField.setText("");
             return false;
@@ -203,7 +214,8 @@ public class GUI {
 
     private boolean canAddPassword() {
         String passwordText = passwordTextField.getText();
-        if ((passwordText == null) || (passwordText.length() < 8) || (!checkForRepeating(1, passwordText))) {
+        String[] isRepeating = checkForRepeating(1, passwordText).split("\\s+");
+        if ((passwordText == null) || (passwordText.length() < 8) || (Boolean.parseBoolean(isRepeating[0]))) {
             passwordTextLabel.setText("Enter Another Password Here:");
             passwordTextField.setText("");
             return false;
@@ -213,7 +225,8 @@ public class GUI {
 
     private boolean canAddEmail() {
         String emailText = emailTextField.getText();
-        if ((emailText == null) || (!checkForRepeating(2, emailText))) {
+        String[] isRepeating = checkForRepeating(2, emailText).split("\\s+");
+        if ((emailText == null) || (Boolean.parseBoolean(isRepeating[0]))) {
             emailTextLabel.setText("Enter Another Email Here:");
             emailTextField.setText("");
             return false;
@@ -223,7 +236,8 @@ public class GUI {
 
     private boolean canAddDiscord() {
         String discordText = discordTextField.getText();
-        if ((discordText == null) || (!checkForRepeating(3, discordText))) {
+        String[] isRepeating = checkForRepeating(3, discordText).split("\\s+");
+        if ((discordText == null) || (Boolean.parseBoolean(isRepeating[0]))) {
             discordTextLabel.setText("Enter Another Discord Here:");
             discordTextField.setText("");
             return false;
@@ -262,13 +276,6 @@ public class GUI {
         }
     }
 
-    private void clearTextFields() {
-        usernameTextField.setText("");
-        passwordTextField.setText("");
-        emailTextField.setText("");
-        discordTextField.setText("");
-    }
-
     private void accountLogin() {
         accountLoginFrame = new JFrame("Account Login");
         setFrame(accountLoginFrame, 300, 300);
@@ -284,7 +291,7 @@ public class GUI {
 
     private void createAccount() {
         createAccountFrame = new JFrame("Create Account");
-        setFrame(createAccountFrame, 300, 350);
+        setFrame(createAccountFrame, 300, 325);
         generateUsernameAndPassword(50, 0, 200, heightConstant, columnConstant);
         generateEmailAndDiscord(50, 100, 200, heightConstant, columnConstant);
         generateCreateAccountButton(75, 210, 150, heightConstant);
