@@ -1,7 +1,8 @@
+import java.io.*;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 
-public class RSA {
+public class RSA implements Serializable {
     private final static BigInteger one = new BigInteger("1");
     private final static SecureRandom random = new SecureRandom();
 

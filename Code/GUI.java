@@ -1,6 +1,6 @@
 import javax.swing.*;
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
 
 public class GUI {
     static JFrame accountLoginFrame;
@@ -83,7 +83,7 @@ public class GUI {
         loginButton = new JButton("Login");
         loginButton.setBounds(initialX, initialY, width, height);
         loginButton.addActionListener(event -> {
-
+            //Add toggle.
         });
     }
 
@@ -105,16 +105,18 @@ public class GUI {
         createAccountButton = new JButton("Create Account");
         createAccountButton.setBounds(initialX, initialY, width, height);
         createAccountButton.addActionListener(event -> {
-            if (createAccountVisible && (canAddAccount())) {
-                addAccount();
+            if (!createAccountVisible) {
                 loginVisible = toggleFrame(accountLoginFrame, loginVisible);
                 createAccountVisible = toggleFrame(createAccountFrame, createAccountVisible);
                 clearTextFields();
-            } else if (createAccountVisible && (!canAddAccount())) {
-                //Don't clear text fields.
-            } else {
-                loginVisible = toggleFrame(accountLoginFrame, loginVisible);
-                createAccountVisible = toggleFrame(createAccountFrame, createAccountVisible);
+            } else if (canParseInputs()) {
+                Account newAccount = new Account(usernameTextField.getText(), passwordTextField.getText(), emailTextField.getText(), discordTextField.getText());
+                if (canAddAccount(newAccount)) {
+                    addAccount(newAccount);
+                    loginVisible = toggleFrame(accountLoginFrame, loginVisible);
+                    createAccountVisible = toggleFrame(createAccountFrame, createAccountVisible);
+                    clearTextFields();
+                }
             }
         });
     }
@@ -172,107 +174,72 @@ public class GUI {
         discordTextField.setText("");
     }
 
-    //Returns whether the input is repeating and the index of the repetition.
-    private String checkForRepeating(int index, String inputText) {
-        Scanner accountDataScanner;
-        ArrayList<String> accountDataList;
-        int counter = -1;
-        try {
-            accountDataScanner = new Scanner(accountDataFile);
-            accountDataList = new ArrayList<>();
-            while (accountDataScanner.hasNextLine()) {
-                Scanner lineScanner = new Scanner(accountDataScanner.nextLine());
-                String accountDataText = "";
-                for (int i = -1; i < index; i++) {
-                    accountDataText = lineScanner.next();
-                }
-                accountDataList.add(accountDataText);
-            }
-        } catch (FileNotFoundException exception) {
-            System.out.println("FileNotFoundException");
-            return true + " " + counter;
-        }
-        for (String text : accountDataList) {
-            counter++;
-            if (text.equals(inputText)) {
-                return true + " " + counter;
-            }
-        }
-        return false + " " + counter;
-    }
-
-    private boolean canAddUsername() {
-        String usernameText = usernameTextField.getText();
-        String[] isRepeating = checkForRepeating(0, usernameText).split("\\s+");
-        if ((usernameText == null) || (usernameText.length() < 5) || (Boolean.parseBoolean(isRepeating[0]))) {
-            usernameTextLabel.setText("Enter Another Username Here:");
+    private boolean canParseInputs() {
+        boolean canParse = true;
+        if (usernameTextField.getText().length() < 5) {
+            usernameTextLabel.setText("Enter Longer Username:");
             usernameTextField.setText("");
-            return false;
+            canParse = false;
         }
-        return true;
-    }
-
-    private boolean canAddPassword() {
-        String passwordText = passwordTextField.getText();
-        String[] isRepeating = checkForRepeating(1, passwordText).split("\\s+");
-        if ((passwordText == null) || (passwordText.length() < 8) || (Boolean.parseBoolean(isRepeating[0]))) {
-            passwordTextLabel.setText("Enter Another Password Here:");
+        if (passwordTextField.getText().length() < 8) {
+            passwordTextLabel.setText("Enter Longer Password:");
             passwordTextField.setText("");
-            return false;
+            canParse = false;
         }
-        return true;
-    }
-
-    private boolean canAddEmail() {
-        String emailText = emailTextField.getText();
-        String[] isRepeating = checkForRepeating(2, emailText).split("\\s+");
-        if ((emailText == null) || (Boolean.parseBoolean(isRepeating[0]))) {
-            emailTextLabel.setText("Enter Another Email Here:");
+        if (!emailTextField.getText().contains("@")) {
+            emailTextLabel.setText("Enter Valid Email:");
             emailTextField.setText("");
-            return false;
+            canParse = false;
         }
-        return true;
-    }
-
-    private boolean canAddDiscord() {
-        String discordText = discordTextField.getText();
-        String[] isRepeating = checkForRepeating(3, discordText).split("\\s+");
-        if ((discordText == null) || (Boolean.parseBoolean(isRepeating[0]))) {
-            discordTextLabel.setText("Enter Another Discord Here:");
+        if (!discordTextField.getText().contains("#")) {
+            discordTextLabel.setText("Enter Valid Discord:");
             discordTextField.setText("");
-            return false;
+            canParse = false;
+        }
+        return canParse;
+    }
+
+    //Loads all the accounts from the file to keep data persistent.
+    private ArrayList<Account> loadAccounts() {
+        ArrayList<Account> loadedAccounts = new ArrayList<>();
+        try {
+            ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(accountDataFile));
+            loadedAccounts = (ArrayList<Account>)objectInputStream.readObject();
+            objectInputStream.close();
+        }
+        catch (IOException exception) {
+            exception.printStackTrace();
+            System.out.println("IOException caught.");
+        }
+        catch (ClassNotFoundException exception) {
+            exception.printStackTrace();
+            System.out.println("ClassNotFoundException caught.");
+        }
+        return loadedAccounts;
+    }
+
+    //If able to add the account it will return true, otherwise will return false.
+    private boolean canAddAccount(Account newAccount) {
+        ArrayList<Account> loadedAccounts = loadAccounts();
+        for (Account loadedAccount : loadedAccounts) {
+            if (!newAccount.compareAccounts(loadedAccount)) {
+                return false;
+            }
         }
         return true;
     }
 
-    private boolean canAddAccount() {
-        boolean canAdd = true;
-        if (!canAddUsername()) {
-            canAdd = false;
-        }
-        if (!canAddPassword()) {
-            canAdd = false;
-        }
-        if (!canAddEmail()) {
-            canAdd = false;
-        }
-        if (!canAddDiscord()) {
-            canAdd = false;
-        }
-        return canAdd;
-    }
-
-    private void addAccount() {
+    private void addAccount(Account newAccount) {
+        ArrayList<Account> loadedAccounts = loadAccounts();
+        loadedAccounts.add(newAccount);
         try {
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(accountDataFile, true));
-            bufferedWriter.write(usernameTextField.getText() + ' ');
-            bufferedWriter.write(passwordTextField.getText() + ' ');
-            bufferedWriter.write(emailTextField.getText() + ' ');
-            bufferedWriter.write(discordTextField.getText() + ' ');
-            bufferedWriter.newLine();
-            bufferedWriter.close();
-        } catch (IOException exception) {
-            System.out.println("IOException");
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(accountDataFile));
+            objectOutputStream.writeObject(loadedAccounts);
+            objectOutputStream.close();
+        }
+        catch (IOException exception) {
+            exception.printStackTrace();
+            System.out.println("IOException caught.");
         }
     }
 

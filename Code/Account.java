@@ -1,6 +1,7 @@
+import java.io.*;
 import java.math.BigInteger;
 
-public class Account {
+public class Account implements Serializable {
     private RSA accountKeys;
 
     private String accountName;
@@ -20,7 +21,7 @@ public class Account {
         return accountKeys;
     }
 
-    public String getAccountName() {
+    private String getAccountName() {
         return accountName;
     }
 
@@ -47,5 +48,19 @@ public class Account {
     //Prints out the account's public and private keys.
     private void printKeys() {
         System.out.println(accountKeys);
+    }
+
+    //Checks for repeating information. If no repeating information returns true.
+    public boolean compareAccounts(Account existingAccount) {
+        if (!this.getAccountName().equals(existingAccount.getAccountName())) {
+            if (!this.getAccountPassword().equals(existingAccount.getAccountPassword())) {
+                if (!this.getAccountEmail().equals(existingAccount.getAccountEmail())) {
+                    if (!this.getAccountDiscord().equals(existingAccount.getAccountDiscord())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }
