@@ -24,14 +24,23 @@ public class GUI {
     private boolean loginVisible;
     private boolean createAccountVisible;
 
+    private final int frameConstant;
+    private final int startingX;
+    private final int startingY;
+    private final int widthConstant;
     private final int heightConstant;
     private final int columnConstant;
 
     private final File accountDataFile;
 
+    //Creates the frames for later use.
     public GUI() {
         loginVisible = false;
         createAccountVisible = false;
+        frameConstant = 300;
+        startingX = 50;
+        startingY = 0;
+        widthConstant = 100;
         heightConstant = 25;
         columnConstant = 16;
         accountDataFile = new File("AccountData.txt");
@@ -40,17 +49,20 @@ public class GUI {
         loginVisible = toggleFrame(accountLoginFrame, loginVisible);
     }
 
+    //Sets the dimensions of the inputted frame. Need to expand later to change frame design.
     private void setFrame(JFrame frame, int width, int height) {
         frame.setSize(width, height);
         frame.setLayout(null);
     }
 
+    //Toggles inputted frame on and off and updates the inputted frame's visible variable.
     private boolean toggleFrame(JFrame frame, boolean visible) {
         visible = !visible;
         frame.setVisible(visible);
         return visible;
     }
 
+    //Creates the username and password components based on inputted values.
     private void generateUsernameAndPassword(int initialX, int initialY, int width, int height, int numColumns) {
         int counter = 0;
         int currentY = initialY;
@@ -72,6 +84,7 @@ public class GUI {
         passwordTextField.setBounds(initialX, currentY, width, height);
     }
 
+    //Adds the username and password components to inputted frame.
     private void addUsernameAndPassword(JFrame frame) {
         frame.add(usernameTextLabel);
         frame.add(usernameTextField);
@@ -79,6 +92,7 @@ public class GUI {
         frame.add(passwordTextField);
     }
 
+    //Creates the login button based on inputted values. Action listener still needs to be done.
     private void generateLoginButton(int initialX, int initialY, int width, int height) {
         loginButton = new JButton("Login");
         loginButton.setBounds(initialX, initialY, width, height);
@@ -87,20 +101,24 @@ public class GUI {
         });
     }
 
+    //Adds the login button to inputted frame.
     private void addLoginButton(JFrame frame) {
         frame.add(loginButton);
     }
 
+    //Creates the create account label based on inputted values.
     private void generateCreateAccountLabel(int initialX, int initialY, int width, int height) {
         createAccountLabel = new JLabel("New User?");
         createAccountLabel.setBounds(initialX, initialY, width, height);
         createAccountLabel.setHorizontalAlignment(SwingConstants.CENTER);
     }
 
+    //Adds the create account label to inputted frame.
     private void addCreateAccountLabel(JFrame frame) {
         frame.add(createAccountLabel);
     }
 
+    //Creates the create account button, which changes purpose based on the current frame.
     private void generateCreateAccountButton(int initialX, int initialY, int width, int height) {
         createAccountButton = new JButton("Create Account");
         createAccountButton.setBounds(initialX, initialY, width, height);
@@ -121,10 +139,12 @@ public class GUI {
         });
     }
 
+    //Adds the create account button to inputted frame.
     private void addCreateAccountButton(JFrame frame) {
         frame.add(createAccountButton);
     }
 
+    //Creates the email and discord components based on inputted values.
     private void generateEmailAndDiscord(int initialX, int initialY, int width, int height, int numColumns) {
         int counter = 0;
         int currentY = initialY;
@@ -146,6 +166,7 @@ public class GUI {
         discordTextField.setBounds(initialX, currentY, width, height);
     }
 
+    //Adds the email and discord components to inputted frame.
     private void addEmailAndDiscord(JFrame frame) {
         frame.add(emailTextLabel);
         frame.add(emailTextField);
@@ -153,6 +174,7 @@ public class GUI {
         frame.add(discordTextField);
     }
 
+    //Creates the go back button based on inputted values.
     private void generateGoBackButton(int initialX, int initialY, int width, int height) {
         goBackButton = new JButton("Go Back");
         goBackButton.setBounds(initialX, initialY, width, height);
@@ -163,10 +185,12 @@ public class GUI {
         });
     }
 
+    //Adds the go back button to inputted frame.
     private void addGoBackButton(JFrame frame) {
         frame.add(goBackButton);
     }
 
+    //Clears the text fields for both frames. Used for changing frames.
     private void clearTextFields() {
         usernameTextField.setText("");
         passwordTextField.setText("");
@@ -174,6 +198,7 @@ public class GUI {
         discordTextField.setText("");
     }
 
+    //Returns true if the account inputs are valid. Checks input lengths and for certain values.
     private boolean canParseInputs() {
         boolean canParse = true;
         if (usernameTextField.getText().length() < 5) {
@@ -199,7 +224,7 @@ public class GUI {
         return canParse;
     }
 
-    //Loads all the accounts from the file to keep data persistent.
+    //Loads all the accounts in a list from the file to keep data persistent. Warns about unchecked casting.
     private ArrayList<Account> loadAccounts() {
         ArrayList<Account> loadedAccounts = new ArrayList<>();
         try {
@@ -207,18 +232,13 @@ public class GUI {
             loadedAccounts = (ArrayList<Account>)objectInputStream.readObject();
             objectInputStream.close();
         }
-        catch (IOException exception) {
-            exception.printStackTrace();
-            System.out.println("IOException caught.");
-        }
-        catch (ClassNotFoundException exception) {
-            exception.printStackTrace();
-            System.out.println("ClassNotFoundException caught.");
+        catch (IOException | ClassNotFoundException exception) {
+            //exception.printStackTrace();
         }
         return loadedAccounts;
     }
 
-    //If able to add the account it will return true, otherwise will return false.
+    //If able to add the inputted account it will return true, otherwise will return false.
     private boolean canAddAccount(Account newAccount) {
         ArrayList<Account> loadedAccounts = loadAccounts();
         for (Account loadedAccount : loadedAccounts) {
@@ -229,6 +249,7 @@ public class GUI {
         return true;
     }
 
+    //Adds the account to a list and then serializes the list to the account data file.
     private void addAccount(Account newAccount) {
         ArrayList<Account> loadedAccounts = loadAccounts();
         loadedAccounts.add(newAccount);
@@ -238,31 +259,36 @@ public class GUI {
             objectOutputStream.close();
         }
         catch (IOException exception) {
-            exception.printStackTrace();
-            System.out.println("IOException caught.");
+            //exception.printStackTrace();
         }
     }
 
+    //Frame for account login. Contains link to account creation frame.
     private void accountLogin() {
         accountLoginFrame = new JFrame("Account Login");
-        setFrame(accountLoginFrame, 300, 300);
-        generateUsernameAndPassword(50, 0, 200, heightConstant, columnConstant);
-        generateLoginButton(100, 110, 100, heightConstant);
-        generateCreateAccountLabel(50, 150, 200, heightConstant);
-        generateCreateAccountButton(75, 175, 150, heightConstant);
+        setFrame(accountLoginFrame, frameConstant, frameConstant);
+        //Changed all values to variables to move the UI easier.
+        generateUsernameAndPassword(startingX, startingY, (widthConstant + 100), heightConstant, columnConstant);
+        generateLoginButton((startingX + 50), (startingY + 110), widthConstant, heightConstant);
+        generateCreateAccountLabel(startingX, (startingY + 150), (widthConstant + 100), heightConstant);
+        generateCreateAccountButton((startingX + 25), (startingY + 175), (widthConstant + 50), heightConstant);
+        //Adds all JFrame components to the frame.
         addUsernameAndPassword(accountLoginFrame);
         addLoginButton(accountLoginFrame);
         addCreateAccountLabel(accountLoginFrame);
         addCreateAccountButton(accountLoginFrame);
     }
 
+    //Frame for account creation. Contains link to go back to login. If account created it auto goes back.
     private void createAccount() {
         createAccountFrame = new JFrame("Create Account");
-        setFrame(createAccountFrame, 300, 325);
-        generateUsernameAndPassword(50, 0, 200, heightConstant, columnConstant);
-        generateEmailAndDiscord(50, 100, 200, heightConstant, columnConstant);
-        generateCreateAccountButton(75, 210, 150, heightConstant);
-        generateGoBackButton(75, 245, 150, heightConstant);
+        setFrame(createAccountFrame, frameConstant, (frameConstant + 25));
+        //Changed all values to variables to move the UI easier.
+        generateUsernameAndPassword(startingX, startingY, (widthConstant + 100), heightConstant, columnConstant);
+        generateEmailAndDiscord(startingX, (startingY + 100), (widthConstant + 100), heightConstant, columnConstant);
+        generateCreateAccountButton((startingX + 25), (startingY + 210), (widthConstant + 50), heightConstant);
+        generateGoBackButton((startingX + 25), (startingY + 245), (widthConstant + 50), heightConstant);
+        //Adds all JFrame components to the frame.
         addUsernameAndPassword(createAccountFrame);
         addEmailAndDiscord(createAccountFrame);
         addCreateAccountButton(createAccountFrame);

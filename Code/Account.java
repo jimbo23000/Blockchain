@@ -17,6 +17,7 @@ public class Account implements Serializable {
         accountDiscord = _accountDiscord;
     }
 
+    //This method has no function at the moment.
     private RSA getAccountKeys() {
         return accountKeys;
     }
